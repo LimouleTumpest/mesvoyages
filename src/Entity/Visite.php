@@ -32,6 +32,9 @@ class Visite
     #[ORM\Column(nullable: true)]
     private ?int $tempmax = null;
 
+    #[ORM\Column(length: 50)]
+    private ?string $pays = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -108,4 +111,26 @@ class Visite
 
         return $this;
     }
+
+    public function getPays(): ?string
+    {
+        return $this->pays;
+    }
+
+    public function setPays(string $pays): static
+    {
+        $this->pays = $pays;
+
+        return $this;
+    }
+    
+    public function getDatecreationString() : string{
+        if ($this->datecreation == null) {
+            return "";
+        } 
+        else {
+            return $this->datecreation->format('d/m/Y');
+        }
+    }
+
 }
