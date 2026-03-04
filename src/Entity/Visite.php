@@ -7,8 +7,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: VisiteRepository::class)]
+#[Vich\Uploadable]
 class Visite
 {
     #[ORM\Id]
@@ -16,6 +21,37 @@ class Visite
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\Callback]
+    public function validate(ExecutionContextInterface $context){
+        $file = $this->getImageFile();
+        if ($file != null && $file != "") {
+            $poids = @filesize($file);
+            if ($poids != false && $poids > 512000) {
+                $context->buildViolation("Cette image est trop lourde (500Ko max)")
+                    ->atPath('imageFile')
+                    ->addViolation();
+            }
+            $infosImage = getimagesize($file);
+            if ($infosImage == False) {
+                $context->buildViolation("Ce fichier n'est pas une image")
+                        ->atPath('imageFile')
+                        ->addViolation();
+            }
+        }
+    }
+    
+    #[Vich\UploadableField(mapping: 'visites', fileNameProperty: 'imageName', size: 'imageSize')]
+    private ?File $imageFile = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $imageName = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $imageSize = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;    
+    
     #[ORM\Column(length: 50)]
     private ?string $ville = null;
 
@@ -168,6 +204,33 @@ class Visite
         $this->environnements->removeElement($environnement);
 
         return $this;
+    }
+    
+    public function getImageFile(): ?File {
+        return $this->imageFile;
+    }
+
+    public function getImageName(): ?string {
+        return $this->imageName;
+    }
+
+    public function getImageSize(): ?int {
+        return $this->imageSize;
+    }
+
+    public function setImageName(?string $imageName): void {
+        $this->imageName = $imageName;
+    }
+
+    public function setImageSize(?int $imageSize): void {
+        $this->imageSize = $imageSize;
+    }
+
+    public function setImageFile(?File $imageFile): void {
+        $this->imageFile=$imageFile;
+        if(null !== $imageFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
     }
 
 }
