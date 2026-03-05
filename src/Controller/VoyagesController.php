@@ -1,10 +1,4 @@
 <?php
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/PHPClass.php to edit this template
- */
-
 namespace App\Controller;
 
 use App\Repository\VisiteRepository;
@@ -16,14 +10,15 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * Description of VoyagesController
  *
- * @author hwatt
+ * @author emds
  */
 class VoyagesController extends AbstractController {
+    
     /**
      * 
      * @var VisiteRepository
      */
-    private VisiteRepository $repository;
+    private $repository;
     
     /**
      * 
@@ -36,37 +31,37 @@ class VoyagesController extends AbstractController {
     #[Route('/voyages', name: 'voyages')]
     public function index(): Response {
         $visites = $this->repository->findAllOrderBy('datecreation', 'DESC');
-        
         return $this->render("pages/voyages.html.twig", [
-            'visites'=>$visites,
+            'visites' => $visites
         ]);
-    }
+    }   
     
-    #[Route('/voyages/tri/{champ}/{ordre}', name:'voyages.sort')]
+    #[Route('/voyages/tri/{champ}/{ordre}', name: 'voyages.sort')]
     public function sort($champ, $ordre): Response{
         $visites = $this->repository->findAllOrderBy($champ, $ordre);
         return $this->render("pages/voyages.html.twig", [
-            'visites'=>$visites,
+            'visites' => $visites
         ]);
     }
     
     #[Route('/voyages/recherche/{champ}', name: 'voyages.findallequal')]
     public function findAllEqual($champ, Request $request): Response{
-        if ($this->isCsrfTokenValid('filtre_'.$champ, $request->get('_token'))){
+        if($this->isCsrfTokenValid('filtre_'.$champ, $request->get('_token'))){
             $valeur = $request->get("recherche");
             $visites = $this->repository->findByEqualValue($champ, $valeur);
             return $this->render("pages/voyages.html.twig", [
                 'visites' => $visites
             ]);
         }
-        return $this->redirectToRoute('voyages');
-    }
+        return $this->redirectToRoute("voyages");
+    }    
     
-    #[Route('/voyages/voyage/{id}', name:'voyages.showone')]
+    #[Route('/voyages/voyage/{id}', name: 'voyages.showone')]
     public function showOne($id): Response{
-        $visite=$this->repository->find($id);
+        $visite = $this->repository->find($id);
         return $this->render("pages/voyage.html.twig", [
-            'visite'=>$visite
+            'visite' => $visite
         ]);
     }
+    
 }
